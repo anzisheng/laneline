@@ -108,7 +108,7 @@ void LaneDetection::lane_marking_detection(bool verbose) {
 	for (int h = img_roi_height; h < img_height;) {
 
 		// half size of the filter
-		int hf_size = 2 + 15 * (h - img_roi_height + 1) / (img_height - img_roi_height);
+		int hf_size = 5 + 15 * (h - img_roi_height + 1) / (img_height - img_roi_height);
 
 		std::vector<int> scan_line(img_width);
 
@@ -125,8 +125,10 @@ void LaneDetection::lane_marking_detection(bool verbose) {
 			for (int i = 1; i <= hf_size; i++) {
 				r_val = r_val + img_gray.at<uchar>(h, w + i);
 			}
-			if (((float)(r_val - l_val) / (float)hf_size)>marking_thres((float)l_val / (float)hf_size)) scan_line[w] = 1; // left edge = 1;
-			if (((float)(l_val - r_val) / (float)hf_size)>marking_thres((float)r_val / (float)hf_size)) scan_line[w] = -1; // right edge = -1;
+			if (((float)(r_val - l_val) / (float)hf_size)>marking_thres((float)l_val / (float)hf_size)) 
+				scan_line[w] = 1; // left edge = 1;
+			if (((float)(l_val - r_val) / (float)hf_size)>marking_thres((float)r_val / (float)hf_size)) 
+				scan_line[w] = -1; // right edge = -1;
 		}
 
 		// Edge Centering
@@ -220,6 +222,7 @@ void LaneDetection::lane_marking_detection(bool verbose) {
 
 	if (verbose) {
 		cv::Mat img_test = cv::Mat(img_size, CV_8UC3);
+		freespace_img_out.copyTo(img_test);// 
 		for (int n = 0; n < lm.size(); n++) {
 			cv::line(img_test, lm[n].str_p, lm[n].end_p, CV_RGB(0, 255, 0), 2, 8, 0);
 		}
@@ -267,6 +270,7 @@ void LaneDetection::seed_generation(bool verbose) {
 
 	if (verbose) {
 		cv::Mat img_test_marking_seed = cv::Mat(img_size, CV_8UC3);
+		freespace_img_out.copyTo(img_test_marking_seed);
 		for (int ii = 0; ii < marking_seed.size(); ++ii) {
 			int	r = rand() % 200 + 50;
 			int	g = rand() % 200 + 50;
@@ -325,7 +329,8 @@ void LaneDetection::seed_generation(bool verbose) {
 	}
 
 	if (verbose) {
-		cv::Mat img_test_valid_seed = freespace_img_out;// cv::Mat(img_size, CV_8UC3);
+		cv::Mat img_test_valid_seed = cv::Mat(img_size, CV_8UC3);
+		freespace_img_out.copyTo(img_test_valid_seed);
 		for (int ii = 0; ii < val_seed.size(); ++ii) {
 			int	r = rand() % 200 + 50;
 			int	g = rand() % 200 + 50;
@@ -473,6 +478,7 @@ void LaneDetection::seed_generation(bool verbose) {
 
 	if (verbose) {
 		cv::Mat img_test_raw_level_assoc = cv::Mat(img_size, CV_8UC3);
+		freespace_img_out.copyTo(img_test_raw_level_assoc);
 		for (int ii = 0; ii < marking_seed.size(); ++ii) {
 			if (marking_seed[ii].flag < 0) {
 				continue;
@@ -948,6 +954,7 @@ void LaneDetection::graph_generation(bool verbose) {
 	// Test displaying
 	if (verbose) {
 		cv::Mat img_test_crf = cv::Mat(img_size, CV_8UC3);
+		freespace_img_out.copyTo(img_test_crf);
 		for (int ii = 0; ii < marking_seed.size(); ++ii) {
 			if (marking_seed[ii].flag < 0) {
 				continue;
@@ -967,7 +974,8 @@ void LaneDetection::graph_generation(bool verbose) {
 
 void LaneDetection::validating_final_seeds(bool verbose) {
 
-	cv::Mat img_test_val = freespace_img_out;// cv::Mat(img_size, CV_8UC3);
+	cv::Mat img_test_val = cv::Mat(img_size, CV_8UC3);
+	freespace_img_out.copyTo(img_test_val);
 	
 	for (int ii = 0; ii < marking_seed.size(); ii++) {
 		if ((marking_seed[ii].flag == 0) && (marking_seed[ii].index.size()>23)) {
@@ -1018,7 +1026,7 @@ void LaneDetection::validating_final_seeds(bool verbose) {
 		for (int yy = marking_seed[ii].str_p.y; yy < marking_seed[ii].end_p.y; ++yy) {
 			dot_p.y = yy;
 			dot_p.x = valueAt(coeff, dot_p.y);
-			cv::circle(img_test_val, dot_p, 1, cv::Scalar(255, 0, 0), 1, 8, 0);
+			cv::circle(img_test_val, dot_p, 1, cv::Scalar(0, 0, 255), 2, 8, 0);
 		}
 
 		cv::imshow("final", img_test_val);
@@ -1040,7 +1048,7 @@ float LaneDetection::marking_thres(float input) {
 	}*/
 	//return thres;
 
-	return input / 10 + 4;
+	return input / 25 + 2;
 }
 int LaneDetection::dist_ftn1(int s_i, int s_j, double slope) {
 
@@ -1486,4 +1494,10 @@ float LaneDetection::poly4(std::vector<cv::Point2f> points, int n, std::vector<f
 	}
 
 	return err;
+}
+
+
+int LaneDetection::FS_data_collect()
+{
+
 }

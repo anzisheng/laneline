@@ -54,6 +54,7 @@ public:
 	float dist_ftn2(int idx1, int idx2);
 	float slope_ftn(cv::Point2f i, cv::Point2f j);
 	float length_ftn(cv::Point2f str_p, cv::Point2f end_p);
+
 	
 	void graph_generation(bool verbose);
 	int dist_ftn3(int i, int j, int s_i, int s_j);
@@ -66,6 +67,8 @@ public:
 	float poly3(std::vector<cv::Point2f> points, int n, std::vector<float>& coeff);
 	float poly2(std::vector<cv::Point2f> points, int n, std::vector<float>& coeff);
 
+	int FS_data_collect();
+	
 	//void display_test1(IplImage*);
 	//void display_test2(IplImage*);
 	//void memory_release();
