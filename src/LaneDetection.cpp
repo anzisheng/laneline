@@ -132,7 +132,7 @@ void LaneDetection::lane_marking_detection(bool verbose) {
 				scan_line[w] = 1; // left edge = 1;
 			if (((float)(l_val - r_val) / (float)hf_size)>marking_thres((float)r_val / (float)hf_size)) 
 				scan_line[w] = -1; // right edge = -1;
-		}
+		} 
 
 		// Edge Centering
 		int e_flag = 0; // edge flag
