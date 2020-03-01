@@ -26,7 +26,7 @@ void main(){
   	}
 	
 	// process
-	for(int ff=60;ff<73;ff++){
+	for(int ff=1;ff<73;ff++){
 
 		std::string img_name = (std::string(img_path)).append(std::to_string(ff)).append(".jpg");		
 
@@ -49,7 +49,7 @@ void main(){
 	
 
 		if (verbose) {
-			cv::waitKey(0);
+			//cv::waitKey(0);
 		}
 	}
 

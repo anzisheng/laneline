@@ -81,6 +81,9 @@ bool LaneDetection::initialize_Img(std::string& img_name) {
 	/*cv::Mat*/ freespace_img_out = Mat::zeros(img_src.size(), img_src.type());
 
 	img_src.copyTo(freespace_img_out, free_img);
+
+	//cv::imwrite(img_name.substr(0, img_name.size() - 4) + "_merged.jpg",freespace_img_out);
+
 	//cv::namedWindow("origin", CV_WINDOW_NORMAL);
 	//cv::Mat img_resize = cv::Mat(freespace_img_out.rows*0.5, freespace_img_out.cols*0.5, CV_8UC3);
 	//cv::resize(freespace_img_out, img_resize, img_resize.size());
@@ -1497,7 +1500,7 @@ float LaneDetection::poly4(std::vector<cv::Point2f> points, int n, std::vector<f
 }
 
 
-int LaneDetection::FS_data_collect()
-{
-
-}
+// int LaneDetection::FS_data_collect()
+// {
+// 
+// }
