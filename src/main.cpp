@@ -3,15 +3,19 @@
 #include <opencv2\opencv.hpp>
 
 #include "LaneDetection.h"
+#include "Camera.h"
 
 void main(){
 	
+	Camera cam();
 	// input parameter
 	bool verbose_lm_detction = true;
 	bool verbose_seed_gen = true;
 	bool verbose_run_crf = true;
 	bool verbose_validating = true;
-	bool verbose = verbose_lm_detction | verbose_seed_gen | verbose_run_crf | verbose_validating;
+	bool verbose_ics2wcs = true;
+	bool verbose = verbose_lm_detction | verbose_seed_gen | verbose_run_crf | verbose_validating| verbose_ics2wcs;
+
 
 	//<-------------- Common Variables definition & initialization --------------> 
 	std::string img_path = "..\\data\\img_mask\\resized\\";
@@ -26,7 +30,7 @@ void main(){
   	}
 	
 	// process
-	for(int ff=1;ff<73;ff++){
+	for(int ff=1;ff<3;ff++){
 
 		std::string img_name = (std::string(img_path)).append(std::to_string(ff)).append(".jpg");		
 
@@ -46,10 +50,11 @@ void main(){
 		
 		// validating
 		ld.validating_final_seeds(verbose_validating);
-	
+
+		// From ICS to WCS	
 
 		if (verbose) {
-			//cv::waitKey(0);
+			cv::waitKey(0);
 		}
 	}
 

@@ -5,7 +5,7 @@
 #include <math.h>
 
 #include "LaneDetection.h"
-
+#define PI 3.141592653589793
 using namespace cv;
 
 // Lane marking definition 
@@ -70,17 +70,30 @@ bool LaneDetection::initialize_variable(std::string& img_name) {
 
 bool LaneDetection::initialize_Img(std::string& img_name) {
 
+	bool isUseFreespace = true;
 	// Loading an input image
 	cv::Mat img_src = cv::imread(img_name);
 	if (img_src.empty()) {
 		std::cout << "Err: Cannot find the input image: " << img_name << std::endl;
 		return false;
 	}
-	cv::Mat free_img = cv::imread(img_name.substr(0, img_name.size() - 4) + "_freespace.jpg");
+	cv::Mat free_img;
+	if (isUseFreespace)
+	{
+		free_img = cv::imread(img_name.substr(0, img_name.size() - 4) + "_freespace.jpg");
+	}
 	
-	/*cv::Mat*/ freespace_img_out = Mat::zeros(img_src.size(), img_src.type());
-
-	img_src.copyTo(freespace_img_out, free_img);
+	/*cv::Mat*/ freespace_img_out = cv::Mat::zeros(img_src.size(), img_src.type());
+	if (isUseFreespace)
+	{
+		img_src.copyTo(freespace_img_out, free_img);
+	}
+	else
+	{
+		img_src.copyTo(freespace_img_out);
+	}
+	
+	disparity_img = cv::imread(img_name.substr(0, img_name.size() - 4) + "_disparity.png");
 
 	//cv::imwrite(img_name.substr(0, img_name.size() - 4) + "_merged.jpg",freespace_img_out);
 
@@ -979,6 +992,9 @@ void LaneDetection::validating_final_seeds(bool verbose) {
 
 	cv::Mat img_test_val = cv::Mat(img_size, CV_8UC3);
 	freespace_img_out.copyTo(img_test_val);
+
+	cv::Mat img_test_wcs = cv::Mat(Size(400,400), CV_8UC3);// ??undefined size
+	
 	
 	for (int ii = 0; ii < marking_seed.size(); ii++) {
 		if ((marking_seed[ii].flag == 0) && (marking_seed[ii].index.size()>23)) {
@@ -1029,14 +1045,91 @@ void LaneDetection::validating_final_seeds(bool verbose) {
 		for (int yy = marking_seed[ii].str_p.y; yy < marking_seed[ii].end_p.y; ++yy) {
 			dot_p.y = yy;
 			dot_p.x = valueAt(coeff, dot_p.y);
+			float Xw, Zw;
+			float disparity = disparity_img.at<Vec3b>((int)dot_p.y, (int)dot_p.x)[0];
+			Point3f p3d = cam.Ics2Wcs(dot_p, (double)disparity);
+			Xw = p3d.x * 100 + 200;
+			Zw = p3d.z * 100 + 200;
 			cv::circle(img_test_val, dot_p, 1, cv::Scalar(0, 0, 255), 2, 8, 0);
+			cv::circle(img_test_wcs, cv::Point2f(Xw,Zw), 1, cv::Scalar(0, 0, 255), 2, 8, 0);
+
 		}
 
 		cv::imshow("final", img_test_val);
-	}
-	
+		cv::imshow("wcs", img_test_wcs);
 
+	}
+
+}
+
+float LaneDetection::fcnZw(cv::Point2f _Xi) {
 	
+	float fu = 1.7152766061605544e+03;// this->config.f.x;
+	float fv = 1.7152766061605544e+03;// this->config.f.y;
+	float uo = 9.6131084882704909e+02;// this->config.c.x;
+	float vo = 5.8104840506995652e+02;// this->config.c.y;
+	float h =  2.1;// this->config.extrinsic.h;
+		
+
+	float u = _Xi.x;
+	float v = 2 * vo - _Xi.y;
+
+	float alpha = (15 * CV_PI) / 180;// 
+	float beta = (0 * CV_PI) / 180;//
+
+	float t2 = cos(beta);
+	float t3 = cos(alpha);
+	float t4 = t2*t2;
+	float t5 = sin(beta);
+	float t6 = t5*t5;
+	float t7 = sin(alpha);
+	float t8 = t3*t3;
+	float t9 = t7*t7;
+
+	float Zw = -(fu*fv*h*t2*t3 - fv*h*t5*t8*u - fv*h*t5*t9*u + fv*h*t5*t8*uo + fv*h*t5*t9*uo - fu*h*t2*t7*v + fu*h*t2*t7*vo) / (fu*fv*t4*t7 + fu*fv*t6*t7 + fu*t3*t4*v + fu*t3*t6*v - fu*t3*t4*vo - fu*t3*t6*vo);
+
+	return Zw;
+}
+
+
+float LaneDetection::fcnXw(cv::Point2f _Xi) {
+
+	float fu = 1.7152766061605544e+03;// this->config.f.x;
+	float fv = 1.7152766061605544e+03;// this->config.f.y;
+	float uo = 9.6131084882704909e+02;// this->config.c.x;
+	float vo = 5.8104840506995652e+02;// this->config.c.y;
+	float h = 2.1;// this->config.extrinsic.h;
+
+
+	float u = _Xi.x;
+	float v = 2 * vo - _Xi.y;
+	
+	float alpha = (15 * CV_PI) / 180;// 
+	float beta = (0 * CV_PI) / 180;// 
+
+	float t2 = cos(beta);
+	float t3 = cos(alpha);
+	float t4 = t2*t2;
+	float t5 = sin(beta);
+	float t6 = t5*t5;
+	float t7 = sin(alpha);
+	float t8 = t3*t3;
+	float t9 = t7*t7;
+
+	float Xw = -(fu*fv*h*t3*t5 + fv*h*t2*t8*u + fv*h*t2*t9*u - fv*h*t2*t8*uo - fv*h*t2*t9*uo - fu*h*t5*t7*v + fu*h*t5*t7*vo) / (fu*fv*t4*t7 + fu*fv*t6*t7 + fu*t3*t4*v + fu*t3*t6*v - fu*t3*t4*vo - fu*t3*t6*vo);
+
+	return Xw;
+}
+
+
+void LaneDetection::ics2wcs(bool verbose)
+{
+	cv::Mat img_test_wcs = cv::Mat(img_size, CV_8UC3);// ??undefined size
+
+
+
+
+
 
 }
 

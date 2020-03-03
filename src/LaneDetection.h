@@ -1,3 +1,4 @@
+#include "Camera.h"
 struct LANE_MARKING {
 	cv::Point2f str_p;
 	cv::Point2f cnt_p;
@@ -62,6 +63,12 @@ public:
 	void node_grouping(cv::Mat& mat_in, int size, int type, int n, int label);
 	float pairwise_ftn(std::vector<cv::Point2f>& pts);
 	void validating_final_seeds(bool verbose);
+	
+	void ics2wcs(bool verbose);
+	float fcnXw(cv::Point2f _Xi);
+	float fcnZw(cv::Point2f _Xi);
+
+	float readDisparity(Point2f pt);
 
 	float poly4(std::vector<cv::Point2f> points, int n, std::vector<float>& coeff);
 	float poly3(std::vector<cv::Point2f> points, int n, std::vector<float>& coeff);
@@ -73,9 +80,10 @@ public:
 	//void display_test2(IplImage*);
 	//void memory_release();
 	cv::Mat freespace_img_out;
+	cv::Mat disparity_img;
 
 private:
-
+	Camera cam;
 	// Image
 	cv::Size img_size;
 	cv::Mat img_gray;
