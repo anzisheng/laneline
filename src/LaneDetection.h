@@ -1,4 +1,6 @@
 #include "Camera.h"
+#include "ParticleFilter.h"
+#define  LANE_NUM 6
 struct LANE_MARKING {
 	cv::Point2f str_p;
 	cv::Point2f cnt_p;
@@ -82,8 +84,13 @@ public:
 	cv::Mat freespace_img_out;
 	cv::Mat disparity_img;
 
-private:
 	Camera cam;
+	// particle filter
+	ParticleFilter* lane_[LANE_NUM];
+
+
+private:
+	
 	// Image
 	cv::Size img_size;
 	cv::Mat img_gray;

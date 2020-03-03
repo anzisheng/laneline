@@ -65,6 +65,10 @@ bool LaneDetection::initialize_variable(std::string& img_name) {
 		w--;
 	}
 
+	// initialize 6 lanes
+	for (int ii = 0; ii < 6; ++ii) {
+		lanes[ii] = new ParticleFilter();
+	}
 	return true;
 }
 
@@ -993,8 +997,8 @@ void LaneDetection::validating_final_seeds(bool verbose) {
 	cv::Mat img_test_val = cv::Mat(img_size, CV_8UC3);
 	freespace_img_out.copyTo(img_test_val);
 
-	cv::Mat img_test_wcs = cv::Mat(Size(400,400), CV_8UC3);// ??undefined size
-	
+	cv::Mat img_test_wcs = cv::Mat(Size(400,800), CV_8UC3);// ??undefined size
+	int lane_index = 0;
 	
 	for (int ii = 0; ii < marking_seed.size(); ii++) {
 		if ((marking_seed[ii].flag == 0) && (marking_seed[ii].index.size()>23)) {
@@ -1033,23 +1037,24 @@ void LaneDetection::validating_final_seeds(bool verbose) {
 
 
 		// polynomial fitting
-		std::vector<cv::Point2f> pts;
-		std::vector<float> coeff(3);
+		//std::vector<cv::Point2f> pts;
+		//std::vector<float> coeff(3);
 		cv::Point2f dot_p;
 		for (int pp = 0; pp < marking_seed[ii].index.size(); pp++) {
 			int idx_lm = marking_seed[ii].index[pp];
-			pts.push_back(lm[idx_lm].cnt_p);
+			lanes[lane_index]->m_pts.push_back(lm[idx_lm].cnt_p);
 		}
-		poly3(pts, pts.size(), coeff);
+		poly3(lanes[lane_index]->m_pts, lanes[lane_index]->m_pts.size(), lanes[lane_index]->m_coeff);
 		
 		for (int yy = marking_seed[ii].str_p.y; yy < marking_seed[ii].end_p.y; ++yy) {
 			dot_p.y = yy;
-			dot_p.x = valueAt(coeff, dot_p.y);
+			dot_p.x = valueAt(lanes[lane_index]->m_coeff, dot_p.y);
 			float Xw, Zw;
 			float disparity = disparity_img.at<Vec3b>((int)dot_p.y, (int)dot_p.x)[0];
 			Point3f p3d = cam.Ics2Wcs(dot_p, (double)disparity);
-			Xw = p3d.x * 100 + 200;
-			Zw = p3d.z * 100 + 200;
+			Xw = p3d.x * 300 + 200;
+			Zw = -p3d.z * 300 + 700;
+			Point2f p2d = cam.Wcs2Ics(p3d, disparity);
 			cv::circle(img_test_val, dot_p, 1, cv::Scalar(0, 0, 255), 2, 8, 0);
 			cv::circle(img_test_wcs, cv::Point2f(Xw,Zw), 1, cv::Scalar(0, 0, 255), 2, 8, 0);
 

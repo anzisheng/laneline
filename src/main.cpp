@@ -1,13 +1,20 @@
 #include <iostream>
 #include <string>
+#include<iostream>
+#include<fstream>
+#include <armadillo>
+
 #include <opencv2\opencv.hpp>
 
 #include "LaneDetection.h"
 #include "Camera.h"
 
+using namespace std;
+using namespace arma;
+
 void main(){
 	
-	Camera cam();
+	//Camera cam();
 	// input parameter
 	bool verbose_lm_detction = true;
 	bool verbose_seed_gen = true;
@@ -30,7 +37,7 @@ void main(){
   	}
 	
 	// process
-	for(int ff=1;ff<3;ff++){
+	for(int ff=1;ff<4;ff++){
 
 		std::string img_name = (std::string(img_path)).append(std::to_string(ff)).append(".jpg");		
 
@@ -56,6 +63,10 @@ void main(){
 		if (verbose) {
 			cv::waitKey(0);
 		}
+		//RT transform
+		std::string rtMat = "E:\\__smartcar\\projects\\new_lane\\mld_crf-master\\data\\img_mask\\resized\\1.mat";
+		ld.cam.setRT2NextFrame(rtMat);
+		//change particle filter.			
 	}
 
 	ld.~LaneDetection();

@@ -85,7 +85,7 @@ cv::Point3f Camera::Ics2Wcs(cv::Point2f point2d, double disparity)
 	D2(0, 0) = lw(0, 0);
 	D2(0, 1) = zc*point2d.x - lw(0, 3); //
 	D2(0, 2) = lw(0, 2);
-
+	
 
 	D2(1, 0) = lw(1, 0);
 	D2(1, 1) = zc*point2d.y - lw(1, 3); 
@@ -117,4 +117,31 @@ cv::Point3f Camera::Ics2Wcs(cv::Point2f point2d, double disparity)
 
 	return point3d;
 	
+}
+
+cv::Point2f Camera::Wcs2Ics(cv::Point3f point3d, double disparity)
+{
+	cv::Point2f p2d;
+	double zc = extrinsic(0, 0)*baseline / disparity;
+
+	arma::vec wcs = vec(4);
+	wcs(0) = point3d.x;
+	wcs(1) = point3d.y;
+	wcs(2) = point3d.z;
+	wcs(3) = 1;
+
+	mat product = randu<mat>(3, 4);
+	product = intrinsic *extrinsic;
+	vec result = vec(3);
+	result = product * wcs;
+	
+	p2d.x = result(0) / zc;
+	p2d.y = result(1) / zc;
+	//point3d.z = result(0) / zc;
+	
+	return p2d;	
+}
+void Camera::setRT2NextFrame(std::string matFile)
+{
+	frameRT.load(matFile);
 }
